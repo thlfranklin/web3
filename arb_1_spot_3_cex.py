@@ -57,18 +57,6 @@ def show_current_prices(ex1, base1, quote1, ex2, base2, quote2):
     ask_price = p_mkt1['asks'][0][0]
     ask_qty = p_mkt1['asks'][0][1]
 
-    # p_mkt1 = pd.merge(
-    #   pd.DataFrame(p_mkt1['result']['bids']), 
-    #   pd.DataFrame(p_mkt1['result']['asks']), 
-    #   left_index=True, right_index=True
-    #   )
-
-    # p_mkt1 = p_mkt1.rename({
-    #   "0_x":"bid","1_x":"bid_qty",
-    #   "0_y":"ask","1_y":"ask_qty"
-    #   }, axis='columns'
-    # )
-
   elif ex1 == 'Binance':
     mkt1 = base1 + quote1
     p_mkt1 = requests.get(f'https://api.binance.com/api/v3/depth?symbol={mkt1}&limit=5').json()
@@ -78,23 +66,21 @@ def show_current_prices(ex1, base1, quote1, ex2, base2, quote2):
     ask_price = p_mkt1['asks'][0][0]
     ask_qty = p_mkt1['asks'][0][1]
 
-    # p_mkt1 = pd.merge(
-    #   pd.DataFrame(p_mkt1['bids'], dtype=float), 
-    #   pd.DataFrame(p_mkt1['asks'], dtype=float), 
-    #   left_index=True, right_index=True
-    # )
+  elif ex1 == 'Kucoin':
+    mkt1 = base1 + '-' + quote1
+    p_mkt1 = requests.get(f'https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol={mkt1}').json()
+    p_mkt1 = p_mkt1['data']
+    bid_price = p_mkt1['bids'][0][0]
+    bid_qty = p_mkt1['bids'][0][1]
+    ask_price = p_mkt1['asks'][0][0]
+    ask_qty = p_mkt1['asks'][0][1]
 
-    # p_mkt1 = p_mkt1.rename({"0_x":"bid","1_x":"bid_qty",
-    #                   "0_y":"ask","1_y":"ask_qty"}, axis='columns')
   else:
-    print('asset market not known')
+    # print('asset market not known')
     bid_price = 0
     bid_qty = 0
     ask_price = 0
     ask_qty = 0
-
-  print('first market: '
-  print(f'{bid_price} {bid_qty} {ask_price} {ask_qty}')
   
   if ex2 == 'FTX':
     mkt2 = base2 +"/"+ quote2
@@ -114,14 +100,16 @@ def show_current_prices(ex1, base1, quote1, ex2, base2, quote2):
     ask_qty2 = p_mkt2['asks'][0][1]
    
   else:
-    print('asset market not known')
+    # print('asset market not known')
     bid_price2 = 0
     bid_qty2 = 0
     ask_price2 = 0
     ask_qty2 = 0
 
-  print('second market: '
-  print(f'{bid_price} {bid_qty} {ask_price} {ask_qty}')
+  # print('first market: ')
+  # print(f'{bid_price} {bid_qty} {ask_price} {ask_qty}')
+  # print('second market: ')
+  # print(f'{bid_price2} {bid_qty2} {ask_price2} {ask_qty2}')
 
   return [bid_price, bid_qty, ask_price, ask_qty, bid_price2, bid_qty2, ask_price2, ask_qty2]
 
@@ -133,6 +121,7 @@ df_bin_info = pd.DataFrame(bin_info['symbols'])
 df_kuc_info = pd.DataFrame(kuc_info['data'])
 
 #%% 
+# # will loop until user cancel
 while True: 
   s_time= datetime.utcnow().isoformat(sep=' ', timespec='milliseconds')
   # get data from all markets in FTX
@@ -143,7 +132,7 @@ while True:
   
   # get data from all markets in Kraken
   # krak = requests.get('https://api.kraken.com/0/public/AssetPairs').json()
-  # nao tem bid ask nesse request & tem q especificar o PAR no request /Ticker?pair=XBTUSD,1INCHUSD'
+  # nao tem bid ask nesse request & tem q especificar o PAR /Ticker?pair=XBTUSD,1INCHUSD'
 
   # get data from all markets in Kucoin
   kuc = requests.get('https://api.kucoin.com/api/v1/market/allTickers').json()
@@ -239,33 +228,42 @@ while True:
   #%% TO-DO
   # # Quantity
 
-  # # Slippage discout
+  # # Slippage discount
 
   # # triger arb (execute orders AND/OR keep for statistics)
   if arb_markets['BUY'].min() < arb_markets['SELL'].max():
-    opp_buy = arb_markets[['base', 'quote', 'exchange', 'base_t', 'quote_t', 'exchange_t', 'BUY']].sort_values('BUY', ascending=True).head(1).squeeze()
-    buy_x = opp_buy['exchange'] if pd.isna(opp_buy['exchange_t']) else (opp_buy['exchange'] + "_" + opp_buy['exchange_t'])
-    buy_mkt = (opp_buy['base']+opp_buy['quote']) 
-    opp_sell = arb_markets[['base', 'quote', 'exchange', 'base_t', 'quote_t', 'exchange_t', 'SELL']].sort_values('SELL', ascending=False).head(1).squeeze()
-    sell_x = opp_sell['exchange'] if pd.isna(opp_sell['exchange_t']) else (opp_sell['exchange'] + "_" + opp_sell['exchange_t'])
-    df_hist_arbs = df_hist_arbs.append([opp_buy,opp_sell],ignore_index=True)
+    l_cols = ['base', 'quote', 'exchange', 'base_t', 'quote_t', 'exchange_t', 'BUY','SELL']
+    l_book = ['bid', 'bid_qty', 'ask', 'ask_qty', 'bid_t', 'bid_qty_t', 'ask_t', 'ask_qty_t']
+
+    opp_buy = arb_markets[l_cols].sort_values('BUY', ascending=True).head(1).squeeze()     #.drop('SELL')
+    opp_sell = arb_markets[l_cols].sort_values('SELL', ascending=False).head(1).squeeze()  #.drop('BUY')
     
-    print(f'[{s_time}]')
+    s_time_book = datetime.utcnow().isoformat(sep=' ', timespec='milliseconds')
+    buy_book = show_current_prices(opp_buy['exchange'], opp_buy['base'], opp_buy['quote'], opp_buy['exchange_t'], opp_buy['base_t'], opp_buy['quote_t'])        
+    sell_book = show_current_prices(opp_sell['exchange'], opp_sell['base'], opp_sell['quote'], opp_sell['exchange_t'], opp_sell['base_t'], opp_sell['quote_t'])
+    
+    opp_buy['s_time'] = s_time
+    opp_sell['s_time'] = s_time
+    opp_buy['s_time_book'] = s_time_book
+    opp_sell['s_time_book'] = s_time_book
+
+    for col in range(len(l_book)):
+      opp_buy[l_book[col]] = buy_book[col]
+      opp_sell[l_book[col]] = sell_book[col]
+  
+    df_hist_arbs = df_hist_arbs.append([opp_buy, opp_sell],ignore_index=True)
+    
     print(opp_buy.to_frame().T)
     print(opp_sell.to_frame().T)
 
-    print('current buy prices:')
-    buy_prices = show_current_prices(opp_buy['exchange'], opp_buy['base'], opp_buy['quote'], opp_buy['exchange_t'], opp_buy['base_t'], opp_buy['quote_t'])
-    print('current sell prices:')
-    sell_prices = show_current_prices(opp_sell['exchange'], opp_sell['base'], opp_sell['quote'], opp_sell['exchange_t'], opp_sell['base_t'], opp_sell['quote_t'])
-  
-    print(datetime.utcnow().isoformat(sep=' ', timespec='milliseconds'), flush=True)
+    # print(f'current buy prices: {buy_prices}')
+    # print(f'current sell prices: {sell_prices}')
 
   # else:
     # print(f'[{s_time}] No arbs opportunities found')
 
   if df_hist_arbs.index.max() > 100:
-    df_hist_arbs.to_csv(os.path.join(s_path,'df_hist_arbs.csv'), mode='a')
+    df_hist_arbs.to_csv(os.path.join(s_path,'df_hist_arbs_3_cex.csv'), mode='a')
     df_hist_arbs = pd.DataFrame()
   time.sleep(10)
 

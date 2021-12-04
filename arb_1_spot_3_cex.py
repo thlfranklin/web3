@@ -53,27 +53,27 @@ def show_current_prices(ex1, base1, quote1, ex2, base2, quote2):
     mkt1 = base1 +"/"+ quote1
     p_mkt1 = requests.get(f'https://ftx.com/api/markets/{mkt1}/orderbook?depth=5').json()
     p_mkt1 = p_mkt1['result']
-    p_sell = p_mkt1['bids'][0][0] * (1-d_fee_bps[ex1]/100)
+    p_sell = float(p_mkt1['bids'][0][0]) * (1-d_fee_bps[ex1]/100)
     qty_sell = p_mkt1['bids'][0][1]
-    p_buy = p_mkt1['asks'][0][0] * (1+d_fee_bps[ex1]/100)
+    p_buy = float(p_mkt1['asks'][0][0]) * (1+d_fee_bps[ex1]/100)
     qty_buy = p_mkt1['asks'][0][1]
 
   elif ex1 == 'Binance':
     mkt1 = base1 + quote1
     p_mkt1 = requests.get(f'https://api.binance.com/api/v3/depth?symbol={mkt1}&limit=5').json()
     # p_mkt1.pop('lastUpdateId')
-    p_sell = p_mkt1['bids'][0][0] * (1-d_fee_bps[ex1]/100)
+    p_sell = float(p_mkt1['bids'][0][0]) * (1-d_fee_bps[ex1]/100)
     qty_sell = p_mkt1['bids'][0][1]
-    p_buy = p_mkt1['asks'][0][0] * (1+d_fee_bps[ex1]/100)
+    p_buy = float(p_mkt1['asks'][0][0]) * (1+d_fee_bps[ex1]/100)
     qty_buy = p_mkt1['asks'][0][1]
 
   elif ex1 == 'Kucoin':
     mkt1 = base1 + '-' + quote1
     p_mkt1 = requests.get(f'https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol={mkt1}').json()
     p_mkt1 = p_mkt1['data']
-    p_sell = p_mkt1['bids'][0][0] * (1-d_fee_bps[ex1]/100)
+    p_sell = float(p_mkt1['bids'][0][0]) * (1-d_fee_bps[ex1]/100)
     qty_sell = p_mkt1['bids'][0][1]
-    p_buy = p_mkt1['asks'][0][0] * (1+d_fee_bps[ex1]/100)
+    p_buy = float(p_mkt1['asks'][0][0]) * (1+d_fee_bps[ex1]/100)
     qty_buy = p_mkt1['asks'][0][1]
 
   else:
@@ -87,26 +87,26 @@ def show_current_prices(ex1, base1, quote1, ex2, base2, quote2):
     mkt2 = base2 +"/"+ quote2
     p_mkt2 = requests.get(f'https://ftx.com/api/markets/{mkt2}/orderbook?depth=3').json()
     p_mkt2 = p_mkt2['result']
-    p_sell2 = p_mkt2['bids'][0][0] * (1-d_fee_bps[ex2]/100)
+    p_sell2 = float(p_mkt2['bids'][0][0]) * (1-d_fee_bps[ex2]/100)
     qty_sell2 = p_mkt2['bids'][0][1]
-    p_buy2 = p_mkt2['asks'][0][0] * (1+d_fee_bps[ex2]/100)
+    p_buy2 = float(p_mkt2['asks'][0][0]) * (1+d_fee_bps[ex2]/100)
     qty_buy2 = p_mkt2['asks'][0][1]
 
   elif ex2 == 'Binance':
     mkt2 = base2 + quote2
     p_mkt2 = requests.get(f'https://api.binance.com/api/v3/depth?symbol={mkt2}&limit=3').json()
-    p_sell2 = p_mkt2['bids'][0][0] * (1-d_fee_bps[ex2]/100)
+    p_sell2 = float(p_mkt2['bids'][0][0]) * (1-d_fee_bps[ex2]/100)
     qty_sell2 = p_mkt2['bids'][0][1]
-    p_buy2 = p_mkt2['asks'][0][0] * (1+d_fee_bps[ex2]/100)
+    p_buy2 = float(p_mkt2['asks'][0][0]) * (1+d_fee_bps[ex2]/100)
     qty_buy2 = p_mkt2['asks'][0][1]
 
   elif ex2 == 'Kucoin':
     mkt2 = base2 + '-' + quote2
     p_mkt2 = requests.get(f'https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol={mkt2}').json()
     p_mkt2 = p_mkt2['data']
-    p_sell2 = p_mkt2['bids'][0][0] * (1-d_fee_bps[ex2]/100)
+    p_sell2 = float(p_mkt2['bids'][0][0]) * (1-d_fee_bps[ex2]/100)
     qty_sell2 = p_mkt2['bids'][0][1]
-    p_buy2 = p_mkt2['asks'][0][0] * (1+d_fee_bps[ex2]/100)
+    p_buy2 = float(p_mkt2['asks'][0][0]) * (1+d_fee_bps[ex2]/100)
     qty_buy2 = p_mkt2['asks'][0][1]
 
   else:

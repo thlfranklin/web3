@@ -33,7 +33,7 @@ pd.set_option('display.float_format', lambda x: '%.6f' % x)
 
 # %% 
 # # list markets we want to monitor in BASE/QUOTE format
-c_base = 'SOL'
+c_base = 'DOT'
 c_quote = 'USDT'
 
 # taker fees in %
@@ -45,6 +45,7 @@ d_fee_bps = {
 }
 
 df_hist_arbs = pd.DataFrame()
+i_seq = 0
 
 
 def show_current_prices(ex1, base1, quote1, ex2, base2, quote2):
@@ -232,6 +233,8 @@ while True:
 
   # # triger arb (execute orders AND/OR keep for statistics)
   if arb_markets['BUY'].min() < arb_markets['SELL'].max():
+    i_seq += 1
+
     l_cols = ['base', 'quote', 'exchange', 'base_t', 'quote_t', 'exchange_t', 'BUY','SELL']
     l_book = ['bid', 'bid_qty', 'ask', 'ask_qty', 'bid_t', 'bid_qty_t', 'ask_t', 'ask_qty_t']
 
@@ -242,6 +245,8 @@ while True:
     buy_book = show_current_prices(opp_buy['exchange'], opp_buy['base'], opp_buy['quote'], opp_buy['exchange_t'], opp_buy['base_t'], opp_buy['quote_t'])        
     sell_book = show_current_prices(opp_sell['exchange'], opp_sell['base'], opp_sell['quote'], opp_sell['exchange_t'], opp_sell['base_t'], opp_sell['quote_t'])
     
+    opp_buy['id'] = i_seq
+    opp_sell['id'] = i_seq
     opp_buy['s_time'] = s_time
     opp_sell['s_time'] = s_time
     opp_buy['s_time_book'] = s_time_book
@@ -253,8 +258,8 @@ while True:
   
     df_hist_arbs = df_hist_arbs.append([opp_buy, opp_sell],ignore_index=True)
     
-    print(opp_buy.to_frame().T)
-    print(opp_sell.to_frame().T)
+    print('new arb opportunity: ', flush=True)
+    print(df_hist_arbs.tail(2), flush=True)
 
     # print(f'current buy prices: {buy_prices}')
     # print(f'current sell prices: {sell_prices}')

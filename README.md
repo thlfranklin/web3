@@ -7,5 +7,5 @@ Curently using Binance, FTX and Kucoin REST APIs.
 Order handling and Quantity criteria still to be implemented.
 
 Executing among different exchanges will require efficient:
-- processing to minimize latency and;
-- capital allocation to guarantee returns.
+- processing (minimize latency) and;
+- capital allocation (guarantee returns).

@@ -53,66 +53,77 @@ def show_current_prices(ex1, base1, quote1, ex2, base2, quote2):
     mkt1 = base1 +"/"+ quote1
     p_mkt1 = requests.get(f'https://ftx.com/api/markets/{mkt1}/orderbook?depth=5').json()
     p_mkt1 = p_mkt1['result']
-    bid_price = p_mkt1['bids'][0][0]
-    bid_qty = p_mkt1['bids'][0][1]
-    ask_price = p_mkt1['asks'][0][0]
-    ask_qty = p_mkt1['asks'][0][1]
+    p_sell = p_mkt1['bids'][0][0] * (1-d_fee_bps[ex1]/100)
+    qty_sell = p_mkt1['bids'][0][1]
+    p_buy = p_mkt1['asks'][0][0] * (1+d_fee_bps[ex1]/100)
+    qty_buy = p_mkt1['asks'][0][1]
 
   elif ex1 == 'Binance':
     mkt1 = base1 + quote1
     p_mkt1 = requests.get(f'https://api.binance.com/api/v3/depth?symbol={mkt1}&limit=5').json()
     # p_mkt1.pop('lastUpdateId')
-    bid_price = p_mkt1['bids'][0][0]
-    bid_qty = p_mkt1['bids'][0][1]
-    ask_price = p_mkt1['asks'][0][0]
-    ask_qty = p_mkt1['asks'][0][1]
+    p_sell = p_mkt1['bids'][0][0] * (1-d_fee_bps[ex1]/100)
+    qty_sell = p_mkt1['bids'][0][1]
+    p_buy = p_mkt1['asks'][0][0] * (1+d_fee_bps[ex1]/100)
+    qty_buy = p_mkt1['asks'][0][1]
 
   elif ex1 == 'Kucoin':
     mkt1 = base1 + '-' + quote1
     p_mkt1 = requests.get(f'https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol={mkt1}').json()
     p_mkt1 = p_mkt1['data']
-    bid_price = p_mkt1['bids'][0][0]
-    bid_qty = p_mkt1['bids'][0][1]
-    ask_price = p_mkt1['asks'][0][0]
-    ask_qty = p_mkt1['asks'][0][1]
+    p_sell = p_mkt1['bids'][0][0] * (1-d_fee_bps[ex1]/100)
+    qty_sell = p_mkt1['bids'][0][1]
+    p_buy = p_mkt1['asks'][0][0] * (1+d_fee_bps[ex1]/100)
+    qty_buy = p_mkt1['asks'][0][1]
 
   else:
     # print('asset market not known')
-    bid_price = 0
-    bid_qty = 0
-    ask_price = 0
-    ask_qty = 0
+    p_sell = 0
+    qty_sell = 0
+    p_buy = 0
+    qty_buy = 0
   
   if ex2 == 'FTX':
     mkt2 = base2 +"/"+ quote2
     p_mkt2 = requests.get(f'https://ftx.com/api/markets/{mkt2}/orderbook?depth=3').json()
     p_mkt2 = p_mkt2['result']
-    bid_price2 = p_mkt2['bids'][0][0]
-    bid_qty2 = p_mkt2['bids'][0][1]
-    ask_price2 = p_mkt2['asks'][0][0]
-    ask_qty2 = p_mkt2['asks'][0][1]
+    p_sell2 = p_mkt2['bids'][0][0] * (1-d_fee_bps[ex2]/100)
+    qty_sell2 = p_mkt2['bids'][0][1]
+    p_buy2 = p_mkt2['asks'][0][0] * (1+d_fee_bps[ex2]/100)
+    qty_buy2 = p_mkt2['asks'][0][1]
 
   elif ex2 == 'Binance':
     mkt2 = base2 + quote2
     p_mkt2 = requests.get(f'https://api.binance.com/api/v3/depth?symbol={mkt2}&limit=3').json()
-    bid_price2 = p_mkt2['bids'][0][0]
-    bid_qty2 = p_mkt2['bids'][0][1]
-    ask_price2 = p_mkt2['asks'][0][0]
-    ask_qty2 = p_mkt2['asks'][0][1]
-   
+    p_sell2 = p_mkt2['bids'][0][0] * (1-d_fee_bps[ex2]/100)
+    qty_sell2 = p_mkt2['bids'][0][1]
+    p_buy2 = p_mkt2['asks'][0][0] * (1+d_fee_bps[ex2]/100)
+    qty_buy2 = p_mkt2['asks'][0][1]
+
+  elif ex2 == 'Kucoin':
+    mkt2 = base2 + '-' + quote2
+    p_mkt2 = requests.get(f'https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol={mkt2}').json()
+    p_mkt2 = p_mkt2['data']
+    p_sell2 = p_mkt2['bids'][0][0] * (1-d_fee_bps[ex2]/100)
+    qty_sell2 = p_mkt2['bids'][0][1]
+    p_buy2 = p_mkt2['asks'][0][0] * (1+d_fee_bps[ex2]/100)
+    qty_buy2 = p_mkt2['asks'][0][1]
+
   else:
     # print('asset market not known')
-    bid_price2 = 0
-    bid_qty2 = 0
-    ask_price2 = 0
-    ask_qty2 = 0
+    p_sell2 = 0
+    qty_sell2 = 0
+    p_buy2 = 0
+    qty_buy2 = 0
 
   # print('first market: ')
   # print(f'{bid_price} {bid_qty} {ask_price} {ask_qty}')
   # print('second market: ')
   # print(f'{bid_price2} {bid_qty2} {ask_price2} {ask_qty2}')
 
-  return [bid_price, bid_qty, ask_price, ask_qty, bid_price2, bid_qty2, ask_price2, ask_qty2]
+  return [p_sell, qty_sell, p_buy, qty_buy, p_sell2, qty_sell2, p_buy2, qty_buy2]  
+  # changed to returning effective taking prices instead of book prices
+  # [bid_price, bid_qty, ask_price, ask_qty, bid_price2, bid_qty2, ask_price2, ask_qty2]
 
 # exchangeInfo brings additional information about tokens
 bin_info = requests.get('https://api.binance.com/api/v3/exchangeInfo').json()
@@ -236,7 +247,8 @@ while True:
     i_seq += 1
 
     l_cols = ['base', 'quote', 'exchange', 'base_t', 'quote_t', 'exchange_t', 'BUY','SELL']
-    l_book = ['bid', 'bid_qty', 'ask', 'ask_qty', 'bid_t', 'bid_qty_t', 'ask_t', 'ask_qty_t']
+    l_book = ['p_sell', 'qty_sell', 'p_buy', 'qty_buy', 'p_sell_t', 'qty_sell_t', 'p_buy_t', 'qty_buy_t']  
+    # l_book = ['bid', 'bid_qty', 'ask', 'ask_qty', 'bid_t', 'bid_qty_t', 'ask_t', 'ask_qty_t']
 
     opp_buy = arb_markets[l_cols].sort_values('BUY', ascending=True).head(1).squeeze()     #.drop('SELL')
     opp_sell = arb_markets[l_cols].sort_values('SELL', ascending=False).head(1).squeeze()  #.drop('BUY')

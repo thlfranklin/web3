@@ -157,4 +157,35 @@ df_mints['gasPrice_gwei'] = df_mints['transaction.gasPrice'].astype(float)/(10**
 ax = df_mints['gasPrice_gwei'].hist(bins=16, xlim=100)
 plt.show()
 
+
+
+# %% UNISWAP DAY DATA
+
+prefix_files = 'DAY_DATA_v2'
+path_files = s_path
+l_dir = os.listdir(path_files)
+l_files = [_file for _file in l_dir if prefix_files in _file]
+df_mints = pd.DataFrame()
+print('files to read: ')
+print(l_files)
+
+df_daydata = pd.DataFrame()
+
+# %%
+for _file in l_files:
+  with open(os.path.join(s_path, _file), 'r', encoding='utf8') as file_json:
+    data_json = json.load(file_json)
+  # drop header from dict 
+  data_json = data_json['data']['pools']
+  # data_json = data_json['data']['poolDayDatas']
+  # df_i = pd.json_normalize(data_json)
+  df_daydata = df_daydata.append(df_i)
+
+df_daydata.head()
+
+# %%
+df_daydata['date_normal'] = pd.to_datetime(df_daydata['date'], unit='s', origin='unix')
+# %%
+df_daydata.groupby(['pool.token0.symbol', 'pool.token1.symbol'])[['date_normal']].count()
+# df_daydata.groupby(['pool.token0.symbol', 'pool.token1.symbol', 'date_normal', 'token0Price', 'token1Price'])[['volumeUSD', 'volumeToken0', 'volumeToken1', 'txCount','feesUSD', ]].sum().to_csv('test_day_data.csv')
 # %%
